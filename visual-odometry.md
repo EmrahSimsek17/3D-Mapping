@@ -350,7 +350,7 @@ Stereo VO uses two synchronized cameras with a known baseline.
 Depth is related to disparity by
 
 ```math
-Z=\frac{fB}{d},
+Z=\frac{fB}{d}
 ```
 
 where:
@@ -528,7 +528,7 @@ Given candidate correspondences, RANSAC repeatedly:
 A correspondence is often classified as an inlier when
 
 ```math
-r_i<\tau,
+r_i<\tau
 ```
 
 where \(r_i\) is the geometric residual and \(\tau\) is a threshold.
@@ -572,7 +572,7 @@ The optimization objective is
 \min_{\{T_i\}}
 \sum_{(i,j)\in\mathcal{E}}
 \left\|
-\operatorname{Log}
+\mathrm{Log}
 \left(
 \hat{T}_{ij}^{-1}T_i^{-1}T_j
 \right)
@@ -687,7 +687,7 @@ After alignment, translational error at frame \(i\) is
 ```math
 e_i=
 \left\|
-\operatorname{trans}
+\mathrm{trans}
 \left(
 T_i^{-1}S\hat{T}_i
 \right)
@@ -733,7 +733,7 @@ RPE_{\mathrm{trans}}
 \frac{1}{M}
 \sum_{i=1}^{M}
 \left\|
-\operatorname{trans}(E_i)
+\mathrm{trans}(E_i)
 \right\|_2^2
 }.
 ```
@@ -751,7 +751,7 @@ t_{\mathrm{rel}}
 \sum_{s\in\mathcal{S}}
 \frac{
 \left\|
-\operatorname{trans}(E_s)
+\mathrm{trans}(E_s)
 \right\|_2
 }{
 l_s
