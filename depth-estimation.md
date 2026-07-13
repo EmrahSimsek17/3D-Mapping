@@ -1,415 +1,471 @@
 # Depth Estimation
 
-> A concise tutorial on **Depth Estimation**, covering mathematical
-> foundations, geometric and learning-based approaches, evaluation
-> metrics, benchmark datasets, and current research directions.
+> A comprehensive tutorial on **Depth Estimation**, covering geometry, classical and deep learning approaches, evaluation metrics, benchmark datasets, representative models, and future research directions.
 
-------------------------------------------------------------------------
+---
 
 # Contents
 
-1.  Introduction
-2.  Definition
-3.  Mathematical Foundations
-4.  Depth Estimation Pipeline
-5.  Depth Estimation Categories
-6.  Classical Methods
-7.  Deep Learning Methods
-8.  Self-Supervised Learning
-9.  Evaluation Metrics
+1. Introduction
+2. Definition
+3. Mathematical Foundations
+4. Depth Estimation Pipeline
+5. Categories
+6. Classical Methods
+7. Deep Learning Methods
+8. Self-Supervised Learning
+9. Evaluation Metrics
 10. Benchmark Datasets
 11. Representative Models
-12. Research Challenges
-13. Future Directions
-14. Resources
+12. Representative Papers
+13. Research Challenges
+14. Future Directions
+15. Useful Resources
 
-------------------------------------------------------------------------
+---
 
 # 1. Introduction
 
-Depth Estimation predicts the distance between a camera and scene
-points. It is a fundamental component of autonomous driving, robotics,
-UAV navigation, augmented reality, and 3D reconstruction.
+Depth Estimation aims to recover the distance between the camera and every visible point in a scene. The output is usually a dense depth map where each pixel represents the estimated distance from the camera.
 
-Typical applications include
+Applications include
 
--   Autonomous Driving
--   Mobile Robotics
--   UAV Navigation
--   3D Mapping
--   SLAM
--   Augmented Reality
--   Medical Imaging
--   Industrial Inspection
+- Autonomous Driving
+- Mobile Robotics
+- UAV Navigation
+- 3D Mapping
+- SLAM
+- Augmented Reality
+- Medical Imaging
+- Industrial Inspection
 
-------------------------------------------------------------------------
+---
 
 # 2. Definition
 
 Given an RGB image
 
-``` math
-I\in\mathbb{R}^{H\times W\times3}
+```math
+I\in\mathbb{R}^{H\times W\times3},
 ```
 
-the objective is to estimate a depth map
+estimate a depth map
 
-``` math
-D\in\mathbb{R}^{H\times W}
+```math
+D=f(I),
 ```
 
-where each pixel stores the distance from the camera.
+where
 
-Outputs may be
+```math
+D\in\mathbb{R}^{H\times W}.
+```
 
--   Relative Depth
--   Metric Depth
--   Dense Depth
--   Sparse Depth
+Each pixel stores the estimated distance from the camera center to the corresponding scene point.
 
-------------------------------------------------------------------------
+Output types
+
+- Relative Depth
+- Metric Depth
+- Dense Depth
+- Sparse Depth
+
+---
 
 # 3. Mathematical Foundations
 
 ## Camera Projection
 
-``` math
-x=K[R|t]X
+```math
+\lambda
+\begin{bmatrix}
+u\\
+v\\
+1
+\end{bmatrix}
+=
+K
+\begin{bmatrix}
+R&t
+\end{bmatrix}
+X
 ```
+
+where
+
+- **K** : intrinsic matrix
+- **R** : rotation matrix
+- **t** : translation vector
 
 ## Stereo Geometry
 
-Depth is computed from disparity.
+Depth is inversely proportional to disparity.
 
-``` math
+```math
 Z=\frac{fB}{d}
 ```
 
 where
 
--   **Z** : depth
--   **f** : focal length
--   **B** : baseline
--   **d** : disparity
+- **Z** : depth
+- **f** : focal length
+- **B** : stereo baseline
+- **d** : disparity
 
-Greater disparity indicates a closer object.
+Large disparity → Near object
 
-------------------------------------------------------------------------
+Small disparity → Far object
 
 ## Triangulation
 
-A 3D point is reconstructed from multiple image observations.
+A 3D point is reconstructed from multiple observations.
 
-``` math
-X=\operatorname{triangulate}(x_1,x_2)
+```math
+X=f(x_1,x_2)
 ```
 
-------------------------------------------------------------------------
+where **f** denotes the triangulation function.
+
+---
 
 # 4. Depth Estimation Pipeline
 
-``` text
+```text
 Input Image(s)
+      │
+Image Preprocessing
       │
 Feature Extraction
       │
+Multi-scale Feature Fusion
+      │
 Depth Prediction
       │
-Refinement
+Depth Refinement
       │
 Depth Map
 ```
 
-Common stages
+---
 
--   Image preprocessing
--   Feature extraction
--   Multi-scale fusion
--   Depth prediction
--   Edge refinement
-
-------------------------------------------------------------------------
-
-# 5. Depth Estimation Categories
+# 5. Categories
 
 ## Monocular Depth Estimation
 
-Uses a single RGB image.
-
 Advantages
 
--   Low hardware cost
--   Suitable for embedded systems
+- Single camera
+- Low cost
+- Passive sensing
+- Lightweight
+- Suitable for embedded AI
 
 Limitations
 
--   Scale ambiguity
--   Challenging metric depth recovery
-
-------------------------------------------------------------------------
+- Scale ambiguity
+- Metric depth is difficult
+- Domain shift
+- Long-range estimation is challenging
 
 ## Stereo Depth Estimation
 
-Uses two synchronized cameras.
-
 Advantages
 
--   Metric depth
--   High geometric accuracy
+- Metric depth
+- Accurate geometry
+- Mature algorithms
 
 Limitations
 
--   Requires calibration
--   Sensitive to textureless regions
-
-------------------------------------------------------------------------
+- Camera calibration required
+- Sensitive to textureless regions
+- Higher computational cost
 
 ## Multi-View Stereo (MVS)
 
 Uses multiple overlapping images.
 
-Advantages
+Typical pipeline
 
--   Dense reconstruction
--   High-quality geometry
+```text
+Image Collection
+      │
+Camera Pose Estimation
+      │
+Sparse SfM
+      │
+Dense MVS
+      │
+Mesh Reconstruction
+```
 
 Applications
 
--   Photogrammetry
--   3D Mapping
+- Photogrammetry
+- Digital Twins
+- 3D Mapping
 
-------------------------------------------------------------------------
-
-## RGB-D Depth
-
-Uses dedicated depth sensors such as structured light or Time-of-Flight
-cameras.
+## RGB-D Depth Estimation
 
 Representative sensors
 
--   Intel RealSense
--   Azure Kinect
--   Orbbec
+- Intel RealSense
+- Azure Kinect
+- Orbbec
+- OAK-D
 
-------------------------------------------------------------------------
+Depth technologies
+
+- Structured Light
+- Time-of-Flight
+- Active Stereo
+
+---
 
 # 6. Classical Methods
 
 Representative algorithms
 
--   Block Matching
--   Semi-Global Matching (SGM)
--   Graph Cuts
--   Dynamic Programming
+- Block Matching
+- Semi-Global Matching (SGM)
+- Graph Cuts
+- Dynamic Programming
+
+### Semi-Global Matching (SGM)
 
 Advantages
 
--   Geometrically interpretable
--   No training required
+- High accuracy
+- Widely adopted
+- Efficient implementation
 
-Limitations
+Common implementation
 
--   Sensitive to lighting
--   Computationally demanding
+- OpenCV StereoSGBM
 
-------------------------------------------------------------------------
+---
 
 # 7. Deep Learning Methods
 
-## Supervised Learning
-
-Uses ground-truth depth maps.
+### Supervised
 
 Representative models
 
--   Eigen et al.
--   DORN
--   BTS
--   AdaBins
+- Eigen et al.
+- DORN
+- BTS
+- AdaBins
+- NewCRFs
 
-------------------------------------------------------------------------
+### Transformer-based
 
-## Transformer-based Models
+Representative models
 
-Representative methods
-
--   ZoeDepth
--   Depth Anything
--   Metric3D
+- ZoeDepth
+- Depth Anything
+- Metric3D
+- UniDepth
+- Marigold
 
 Advantages
 
--   Strong global context
--   Excellent generalization
+- Strong global reasoning
+- Excellent generalization
 
-------------------------------------------------------------------------
+---
 
 # 8. Self-Supervised Learning
 
-Self-supervised approaches learn depth using image reconstruction
-without dense depth labels.
-
-Typical supervision
-
--   Photometric consistency
--   View synthesis
--   Pose estimation
-
 Representative models
 
--   Monodepth2
--   PackNet-SfM
--   ManyDepth
+- Monodepth2
+- PackNet-SfM
+- ManyDepth
+
+Typical objective
+
+```math
+L=L_{photo}+\lambda L_{smooth}
+```
+
+Common losses
+
+- Photometric Loss
+- Edge-aware Smoothness Loss
+- Pose Consistency Loss
 
 Advantages
 
--   No ground-truth depth required
--   Large-scale training
+- No dense labels
+- Large-scale training
 
 Limitations
 
--   Dynamic objects
--   Occlusions
--   Illumination changes
+- Dynamic objects
+- Occlusions
+- Illumination variation
 
-------------------------------------------------------------------------
+---
 
 # 9. Evaluation Metrics
 
-Absolute Relative Error
+## Absolute Relative Error
 
-``` math
+```math
 AbsRel=
-\frac1N\sum\frac{|D-\hat D|}{D}
+\frac{1}{N}
+\sum
+\frac{|D-\hat D|}{D}
 ```
 
-Squared Relative Error
+## Squared Relative Error
 
-``` math
+```math
 SqRel=
-\frac1N\sum\frac{(D-\hat D)^2}{D}
+\frac{1}{N}
+\sum
+\frac{(D-\hat D)^2}{D}
 ```
 
-Root Mean Square Error
+## Root Mean Square Error
 
-``` math
+```math
 RMSE=
-\sqrt{\frac1N\sum(D-\hat D)^2}
+\sqrt{
+\frac1N
+\sum
+(D-\hat D)^2
+}
 ```
 
-Log RMSE
+## Threshold Accuracy
 
-``` math
-RMSE_{log}
+```math
+\delta_i=
+\max
+\left(
+\frac{D_i}{\hat D_i},
+\frac{\hat D_i}{D_i}
+\right)
 ```
 
-Threshold Accuracy
+Report
 
-``` math
-\delta<1.25
-```
+- δ < 1.25
+- δ < 1.25²
+- δ < 1.25³
 
-Higher values indicate better predictions.
+Higher threshold accuracy is better.
 
-------------------------------------------------------------------------
+---
 
 # 10. Benchmark Datasets
 
-  Dataset         Domain       Sensor
-  --------------- ------------ --------------
-  KITTI Depth     Driving      Stereo
-  NYUv2           Indoor       RGB-D
-  ETH3D           Multi-view   Stereo
-  ScanNet         Indoor       RGB-D
-  TUM RGB-D       SLAM         RGB-D
-  DDAD            Driving      Multi-sensor
-  Virtual KITTI   Synthetic    Stereo
+| Dataset | Indoor | Outdoor | Sensor | Metric Depth |
+|---|:---:|:---:|---|:---:|
+| KITTI Depth | | ✓ | Stereo | ✓ |
+| NYUv2 | ✓ | | RGB-D | ✓ |
+| ScanNet | ✓ | | RGB-D | ✓ |
+| ETH3D | ✓ | ✓ | Stereo | ✓ |
+| DDAD | | ✓ | Multi-sensor | ✓ |
+| TUM RGB-D | ✓ | | RGB-D | ✓ |
+| Virtual KITTI | | ✓ | Synthetic | ✓ |
 
-------------------------------------------------------------------------
+---
 
 # 11. Representative Models
 
-  Model              Year Main Idea
-  ---------------- ------ ----------------------------
-  Eigen              2014 CNN depth estimation
-  Monodepth          2017 Self-supervised stereo
-  Monodepth2         2019 Monocular self-supervision
-  BTS                2020 Local planar guidance
-  AdaBins            2021 Adaptive depth bins
-  ZoeDepth           2023 Zero-shot metric depth
-  Depth Anything     2024 Foundation depth model
-  Metric3D           2024 Metric monocular depth
+| Model | Year | Type | Supervision |
+|---|---:|---|---|
+| Eigen | 2014 | CNN | Supervised |
+| Monodepth | 2017 | CNN | Self-supervised |
+| Monodepth2 | 2019 | CNN | Self-supervised |
+| BTS | 2020 | CNN | Supervised |
+| AdaBins | 2021 | CNN | Supervised |
+| ZoeDepth | 2023 | Transformer | Metric |
+| Depth Anything | 2024 | Foundation Model | Pretrained |
+| Metric3D | 2024 | Transformer | Metric |
 
-------------------------------------------------------------------------
+---
 
-# 12. Research Challenges
+# 12. Representative Papers
 
--   Scale ambiguity
--   Thin structures
--   Reflective surfaces
--   Transparent objects
--   Dynamic scenes
--   Adverse weather
--   Long-range depth estimation
--   Real-time embedded inference
+| Paper | Contribution |
+|---|---|
+| Eigen et al. (2014) | First CNN-based monocular depth estimation |
+| Monodepth (2017) | Self-supervised stereo learning |
+| Monodepth2 (2019) | Monocular self-supervised depth |
+| AdaBins (2021) | Adaptive depth binning |
+| ZoeDepth (2023) | Zero-shot metric depth |
+| Depth Anything (2024) | Foundation model for depth estimation |
 
-------------------------------------------------------------------------
+---
 
-# 13. Future Directions
+# 13. Research Challenges
 
-Emerging research topics
+- Scale ambiguity
+- Thin structures
+- Reflective surfaces
+- Transparent objects
+- Dynamic scenes
+- Long-range estimation
+- Domain adaptation
+- Embedded real-time inference
 
--   Foundation Models
--   Metric Monocular Depth
--   Event Camera Depth
--   RGB-IMU Depth Estimation
--   Semantic-guided Depth
--   Gaussian Splatting
--   Neural Radiance Fields (NeRF)
--   Edge AI Depth Estimation
+---
 
-------------------------------------------------------------------------
+# 14. Future Directions
 
-# 14. Useful Resources
+- Foundation Models
+- Vision Foundation Models
+- Video Depth Estimation
+- Event Camera Depth
+- RGB-IMU Depth Estimation
+- Semantic-guided Depth
+- Gaussian Splatting
+- Neural Radiance Fields (NeRF)
+- Edge AI Depth Estimation
+- Generalizable Metric Depth
+
+---
+
+# 15. Useful Resources
 
 ## Libraries
 
--   OpenCV
--   Open3D
--   PyTorch
--   Kornia
--   TensorRT
+- OpenCV
+- Open3D
+- PyTorch
+- Kornia
+- TensorRT
 
 ## Conferences
 
--   CVPR
--   ICCV
--   ECCV
--   3DV
--   ICRA
+- CVPR
+- ICCV
+- ECCV
+- 3DV
+- ICRA
 
 ## Journals
 
--   IEEE TPAMI
--   IJCV
--   Pattern Recognition
--   Image and Vision Computing
+- IEEE TPAMI
+- IJCV
+- Pattern Recognition
+- Image and Vision Computing
 
 ## Suggested Learning Order
 
-1.  Camera Geometry
-2.  Stereo Vision
-3.  Multi-View Geometry
-4.  Visual Odometry
-5.  Depth Estimation
-6.  3D Mapping
-7.  SLAM
+1. Camera Geometry
+2. Stereo Vision
+3. Multi-View Geometry
+4. Visual Odometry
+5. Depth Estimation
+6. 3D Mapping
+7. SLAM
 
-------------------------------------------------------------------------
+---
 
 # Notes
 
-Depth Estimation is one of the key building blocks of modern 3D
-perception systems. In practical applications, it is commonly integrated
-with Visual Odometry, Semantic Segmentation, and 3D Mapping to enable
-accurate scene understanding and autonomous navigation.
+Modern depth estimation systems increasingly combine geometric constraints, transformer architectures, self-supervised learning, and foundation models to achieve robust and generalizable depth prediction across diverse environments.
