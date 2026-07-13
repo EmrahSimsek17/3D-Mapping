@@ -129,8 +129,8 @@ where
 
 A 3D point is reconstructed from multiple observations.
 
-``` math
-X=\operatorname{triangulate}(x_1,x_2)
+```math
+X = \mathrm{Triangulate}(x_1,x_2)
 ```
 
 ------------------------------------------------------------------------
