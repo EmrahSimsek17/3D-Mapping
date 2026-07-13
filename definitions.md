@@ -1,93 +1,88 @@
-# Definitions
+# 3D Vision Glossary (Definitions)
 
-> This document introduces the fundamental terminology used in
-> camera-based **3D Mapping**, **Visual Odometry (VO)**,
-> **Visual-Inertial Odometry (VIO)**, **Depth Estimation**, and
-> **SLAM**.
+> Fundamental terminology for **3D Mapping**, **Visual Odometry (VO)**, **Visual-Inertial Odometry (VIO)**, **Depth Estimation**, **Structure from Motion (SfM)** and **SLAM**.
 
-------------------------------------------------------------------------
+---
 
 # Contents
 
-1.  Coordinate Systems
-2.  Camera Model
-3.  Camera Motion
-4.  Depth & Geometry
-5.  Mapping Concepts
-6.  SLAM Terminology
+1. Coordinate Systems
+2. Camera Model
+3. Camera Motion
+4. 3D Geometry
+5. Mapping Concepts
+6. SLAM Concepts
+7. Optimization
+8. Recommended Reading
 
-------------------------------------------------------------------------
+---
 
 # 1. Coordinate Systems
 
 ## World Coordinate System
-
 A fixed global reference frame describing the environment.
 
-------------------------------------------------------------------------
-
 ## Camera Coordinate System
-
 A local coordinate system attached to the camera.
-
-The camera center is the origin.
-
-------------------------------------------------------------------------
 
 ## Image Coordinate System
 
-The 2D coordinate system used to represent pixels.
-
-``` math
+```math
 p=(u,v)
 ```
 
-------------------------------------------------------------------------
+## Normalized Image Coordinates
+
+```math
+x_n=K^{-1}x
+```
+
+Used after removing intrinsic camera parameters.
 
 ## Homogeneous Coordinates
 
-Homogeneous coordinates simplify geometric transformations.
-
-``` math
-X=[x,y,z,1]^T
+```math
+X=
+\begin{bmatrix}
+x\\
+y\\
+z\\
+1
+\end{bmatrix}
 ```
 
-------------------------------------------------------------------------
+Advantages
+
+- Unified transformations
+- Projective geometry
+- Camera projection
+
+---
 
 # 2. Camera Model
 
+## Camera
+Projects a 3D scene onto a 2D image plane.
+
 ## Pinhole Camera Model
 
-The most widely used mathematical camera model.
-
-Projection equation
-
-``` math
-x=K[R|t]X
+```math
+\lambda x=
+K
+\begin{bmatrix}
+R&t
+\end{bmatrix}
+X
 ```
-
-where
-
--   **K** : intrinsic matrix
--   **R** : rotation matrix
--   **t** : translation vector
-
-------------------------------------------------------------------------
 
 ## Intrinsic Parameters
 
-Describe the internal properties of a camera.
+- Focal length
+- Principal point
+- Pixel size
+- Skew
 
-Typical parameters
-
--   Focal length
--   Principal point
--   Pixel size
--   Skew
-
-Intrinsic matrix
-
-``` math
+```math
 K=
 \begin{bmatrix}
 f_x&0&c_x\\
@@ -96,246 +91,294 @@ f_x&0&c_x\\
 \end{bmatrix}
 ```
 
-------------------------------------------------------------------------
-
 ## Extrinsic Parameters
 
-Describe the camera pose relative to the world.
-
-``` math
-T=[R|t]
+```math
+T=
+\begin{bmatrix}
+R&t\\
+0&1
+\end{bmatrix}
 ```
 
-------------------------------------------------------------------------
+## Camera Calibration
+
+Estimation of intrinsic parameters and lens distortion.
+
+## Lens Distortion
+
+- Radial distortion
+- Tangential distortion
+
+## Field of View (FoV)
+
+Defines the observable angular range.
+
+## Baseline
+
+```math
+B=\|C_1-C_2\|
+```
+
+Distance between stereo cameras.
+
+---
 
 # 3. Camera Motion
 
 ## Pose
 
-Pose defines the camera position and orientation.
-
-``` math
-Pose=(R,t)
+```math
+T=
+\begin{bmatrix}
+R&t\\
+0&1
+\end{bmatrix}
 ```
 
-------------------------------------------------------------------------
+Pose belongs to
 
-## Rotation Matrix
-
-Represents camera orientation.
-
-Properties
-
--   Orthogonal
--   Determinant = 1
-
-``` math
-R^TR=I
+```math
+T\in SE(3)
 ```
-
-------------------------------------------------------------------------
 
 ## Translation
 
-Translation represents camera displacement.
-
-``` math
-t=[t_x,t_y,t_z]^T
+```math
+t=
+\begin{bmatrix}
+t_x\\
+t_y\\
+t_z
+\end{bmatrix}
 ```
 
-------------------------------------------------------------------------
+## Rotation Matrix
+
+```math
+R\in SO(3)
+```
+
+```math
+R^TR=I
+```
+
+```math
+det(R)=1
+```
+
+## Euler Angles
+
+- Roll
+- Pitch
+- Yaw
+
+## Quaternion
+
+Compact rotation representation without gimbal lock.
 
 ## Ego-motion
 
-The motion of the camera itself, independent of moving objects.
-
-------------------------------------------------------------------------
+Motion of the observing camera.
 
 ## Scale
 
-Scale converts relative motion into metric distance.
+Metric conversion factor.
 
-Monocular systems cannot recover metric scale without additional
-information.
+## Drift
 
-------------------------------------------------------------------------
+Accumulated trajectory error.
 
-## Six Degrees of Freedom (6-DoF)
+## 6-DoF
 
-A camera pose consists of
+- X,Y,Z translation
+- Roll, Pitch, Yaw rotation
 
--   Translation (x,y,z)
--   Rotation (roll,pitch,yaw)
+---
 
-------------------------------------------------------------------------
-
-# 4. Depth & Geometry
+# 4. 3D Geometry
 
 ## Depth
 
-Depth is the distance between a scene point and the camera.
-
-``` math
+```math
 Z>0
 ```
 
-------------------------------------------------------------------------
-
 ## Disparity
 
-In stereo vision,
-
-``` math
+```math
 Z=\frac{fB}{d}
 ```
 
-where
+## Triangulation
 
--   f : focal length
--   B : baseline
--   d : disparity
+```math
+X=f(x_1,x_2)
+```
 
-------------------------------------------------------------------------
+## Epipolar Geometry
 
-## Baseline
+Relationship between two calibrated views.
 
-The distance between two cameras in a stereo system.
+## Essential Matrix
 
-------------------------------------------------------------------------
+```math
+x'^TEx=0
+```
+
+## Fundamental Matrix
+
+```math
+x'^TFx=0
+```
+
+## Homography
+
+```math
+x'=Hx
+```
 
 ## Point Cloud
 
-A collection of 3D points representing scene geometry.
-
-``` math
+```math
 P=\{(x_i,y_i,z_i)\}
 ```
 
-------------------------------------------------------------------------
+Point attributes may include RGB, normals and semantic labels.
 
-## Sparse Reconstruction
+## Surface Normal
 
-Only salient feature points are reconstructed.
+Perpendicular vector to a surface.
 
-------------------------------------------------------------------------
+## Mesh
 
-## Dense Reconstruction
+Polygon-based surface representation.
 
-Depth is estimated for most image pixels.
-
-------------------------------------------------------------------------
+---
 
 # 5. Mapping Concepts
 
-## Map
+## Sparse Mapping
 
-A geometric representation of an environment.
+Reconstructs only salient landmarks.
 
-Common map types
+## Dense Mapping
 
--   Point Cloud
--   Mesh
--   Occupancy Grid
--   TSDF
--   Octree
+Reconstructs most visible surfaces.
 
-------------------------------------------------------------------------
+## Semantic Mapping
 
-## Semantic Map
+Combines geometry with semantic labels.
 
-A map containing both geometry and semantic labels.
+## Occupancy Grid
 
-------------------------------------------------------------------------
+Free / Occupied / Unknown cells.
+
+## Voxel
+
+Volumetric equivalent of a pixel.
+
+## Octree
+
+Hierarchical spatial representation.
 
 ## TSDF
 
 Truncated Signed Distance Function.
 
-Frequently used for dense volumetric mapping.
+## ESDF
 
-------------------------------------------------------------------------
+Euclidean Signed Distance Field.
 
-## Occupancy Grid
+## Gaussian Splatting
 
-Represents free and occupied space using discrete cells.
+Scene representation using 3D Gaussians.
 
-------------------------------------------------------------------------
+## Neural Radiance Fields (NeRF)
 
-## Loop Closure
+Continuous neural scene representation.
 
-Recognizing a previously visited location to reduce accumulated drift.
+---
 
-------------------------------------------------------------------------
-
-## Bundle Adjustment
-
-Joint optimization of camera poses and 3D points.
-
-Objective
-
-``` math
-\min\sum ||x-\hat x||^2
-```
-
-------------------------------------------------------------------------
-
-# 6. SLAM Terminology
+# 6. SLAM Concepts
 
 ## Visual Odometry (VO)
 
-Estimates camera motion using image sequences.
-
-------------------------------------------------------------------------
+Camera motion estimation using images.
 
 ## Visual-Inertial Odometry (VIO)
 
-Combines image and IMU measurements for robust motion estimation.
-
-------------------------------------------------------------------------
-
-## Depth Estimation
-
-Predicts scene depth from one or more images.
-
-------------------------------------------------------------------------
+Camera and IMU fusion.
 
 ## Structure from Motion (SfM)
 
-Recovers both camera motion and sparse scene geometry from multiple
-images.
+Joint recovery of camera poses and sparse geometry.
 
-------------------------------------------------------------------------
+## SLAM
 
-## Simultaneous Localization and Mapping (SLAM)
-
-Simultaneously estimates camera pose while constructing a map.
-
-------------------------------------------------------------------------
+Simultaneous Localization and Mapping.
 
 ## Dynamic SLAM
 
-SLAM systems capable of handling moving objects.
+SLAM in dynamic environments.
 
-------------------------------------------------------------------------
+## Keyframe
 
-## Global Optimization
+Frame selected for optimization.
 
-Reduces accumulated trajectory drift by optimizing all poses jointly.
+## Keypoint
 
-------------------------------------------------------------------------
+Representative image feature.
+
+Examples
+
+- ORB
+- SIFT
+- AKAZE
+
+## Landmark
+
+Persistent reconstructed 3D point.
+
+## Loop Closure
+
+Recognition of previously visited places.
+
+## Relocalization
+
+Recovery after tracking failure.
+
+---
+
+# 7. Optimization
+
+## Bundle Adjustment
+
+```math
+\min \sum \|x-\hat{x}\|^2
+```
+
+Joint optimization of camera poses and landmarks.
+
+## Pose Graph Optimization
+
+Global optimization over camera poses.
+
+## Factor Graph
+
+Graph representation of estimation constraints.
+
+## Robust Loss Functions
+
+- Huber
+- Cauchy
+- Tukey
+
+---
 
 # Recommended Reading
 
--   Multiple View Geometry in Computer Vision
--   Computer Vision: Algorithms and Applications
--   Visual SLAM: From Theory to Practice
--   Probabilistic Robotics
-
-------------------------------------------------------------------------
-
-# Related Documents
-
--   Visual Odometry
--   Visual-Inertial Odometry
--   Depth Estimation
--   3D Mapping
+- Multiple View Geometry in Computer Vision
+- Computer Vision: Algorithms and Applications
+- Probabilistic Robotics
+- Visual SLAM: From Theory to Practice
